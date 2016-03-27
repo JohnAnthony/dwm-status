@@ -19,6 +19,7 @@ struct net_pair {
 	bool success;
 };
 
+#ifdef BATTERY
 int get_bat_level() {
 	int ret;
 	FILE* f;
@@ -55,6 +56,7 @@ char get_bat_action() {
 	close(f);
 	return ret;
 }
+#endif // BATTERY
 
 void write_old_net_stats(int down, int up) {
 	FILE* f = fopen("/tmp/status.net", "w");
@@ -174,8 +176,10 @@ void print_separator() {
 }
 
 int main(void) {
+#ifdef BATTERY
 	int bat_level = get_bat_level();
 	int bat_action = get_bat_action();
+#endif // BATTERY
 
 	struct net_pair network = get_network_pair();
 	char up[5];
@@ -190,6 +194,7 @@ int main(void) {
 	else
 		printf("U:%s D:%s", up, down);
 	
+#ifdef BATTERY
 	print_separator();
 
 	if (bat_level == -1)
@@ -198,8 +203,7 @@ int main(void) {
 		printf("FULL");
 	else 
 		printf("%02d%% %c", bat_level, bat_action);
-
-	puts("");
+#endif
 
 	// All done
 
