@@ -1,0 +1,9 @@
+#!/bin/bash
+
+while true; do
+	SS="$(status)"
+	DATE="$(date +"%Y-%m-%d %T %A")"
+
+	xsetroot -name "$(echo -e "$SS | $DATE")";
+	sleep 1;
+done
