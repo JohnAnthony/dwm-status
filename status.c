@@ -1,6 +1,16 @@
 #include <stdio.h>
 #include <stdbool.h>
 
+#define LENGTH(x) (sizeof(x) / sizeof(x[0]))
+
+static char SI_UNITS[] = {
+	' ',
+	'k',
+	'M',
+	'G',
+	'T'
+};
+
 struct net_pair {
 	int down;
 	int up;
@@ -133,7 +143,19 @@ exit:
 }
 
 void to_si(char* buf, unsigned int n) {
-	snprintf(buf, 5, "%d", n);
+	size_t unit = 0;
+
+	while (n > 999) {
+		unit++;
+		n /= 1024;
+	}
+
+	if (unit >= LENGTH(SI_UNITS)) {
+		snprintf(buf, 6, "^^^^^");
+		return;
+	}
+
+	snprintf(buf, 6, "%4d%c", n, SI_UNITS[unit]);
 	buf[5] = '\0';
 }
 
