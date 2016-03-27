@@ -1,18 +1,46 @@
 #include <stdio.h>
-#include <linux/power_supply.h>
+
+int get_bat_level() {
+	int ret;
+	FILE* f;
+
+	f = fopen("/sys/class/power_supply/BAT0/capacity", "r");
+	if (!f)
+		return -1;
+
+	fscanf(f, "%d", &ret);
+	close(f);
+	return ret;
+}
+
+char get_bat_action() {
+	FILE* f;
+	char buf[8];
+	char ret;
+
+	f = fopen("/sys/class/power_supply/BAT0/status", "r");
+	if (!f)
+		return 'X';
+
+	fread(&buf, sizeof(char), 7, f);
+	buf[7] = '\0';
+	if (!strcmp(buf, "Dischar"))
+		ret = '-';
+	else if (!strcmp(buf, "Chargin"))
+		ret = '+';
+	else if (!strcmp(buf, "Full"))
+		ret = '^';
+	else
+		ret = '?';
+
+	close(f);
+	return ret;
+}
 
 int main(void) {
-	char name[]= "BAT0";
-	int result = 0;
-	struct power_supply *psy = power_supply_get_by_name(name);
-	union power_supply_propval chargenow, chargefull;
-	result = psy->get_property(psy,POWER_SUPPLY_PROP_CHARGE_NOW,&chargenow);
-	if(!result)
-		printf(KERN_INFO "The charge level is %d\n",chargenow.intval);
+	int bat_level = get_bat_level();
+	int bat_action = get_bat_action();
 
-	result = psy->get_property(psy,POWER_SUPPLY_PROP_CHARGE_FULL,&chargefull);
-	if(!result)
-		printf(KERN_INFO "The charge level is %d\n",chargefull.intval);
-
+	printf("%d%% %c\n", bat_level, bat_action);
 	return 0;
 }
