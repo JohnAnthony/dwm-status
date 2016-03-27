@@ -1,3 +1,5 @@
+CFLAGS="--std=c11"
+
 all: status
 
 status: status.c

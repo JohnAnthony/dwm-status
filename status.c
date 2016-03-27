@@ -3,6 +3,8 @@
 
 #define LENGTH(x) (sizeof(x) / sizeof(x[0]))
 
+#include "config.h"
+
 static char SI_UNITS[] = {
 	' ',
 	'k',
@@ -67,10 +69,16 @@ struct net_pair get_network_pair() {
 	struct net_pair ret;
 	FILE* f;
 	char* r; // Used for detecting read errors
-	int new_down;
-	int new_up;
+	int rr; // User for ^
+	long unsigned int old_down;
+	long unsigned int old_up;
+	long unsigned int new_down;
+	long unsigned int new_up;
+	long unsigned int junk;
 	char buf[9];
 	buf[8] = '\0';
+
+	//////////
 
 	f = fopen("/proc/net/dev", "r");
 	if (!f) {
@@ -80,10 +88,10 @@ struct net_pair get_network_pair() {
 
 	// Find our network interface
 	while (true) {
-		r = fgets(buf, 8, f);
+		r = fgets(buf, 7, f);
 		if (r != buf)
 			goto exit;
-		if (!strcmp(buf, "wlp1s0:"))
+		if (!strcmp(buf, NET_IFACE))
 			break;
 
 		// Wind forwards a line
@@ -96,45 +104,47 @@ struct net_pair get_network_pair() {
 		}
 	}
 
+	// There's a colon. Ignore it.
+	fgetc(f);
+
 	// Get download amount
-	r = fgets(buf, 9, f);
-	if (r != buf)
+	rr = fscanf(f, "%ld", &new_down);
+	if (rr <= 0)
 		goto exit;
-	new_down = atoi(buf);
 
 	// Seek forwards to upload amount
-	fseek(f, 51, SEEK_CUR);
-	// TODO: This can fail
+	for (int i = 0; i < 7; i++) {
+		rr = fscanf(f, "%ld", &junk);
+		if (rr <= 0) {
+			puts("derp");
+			goto exit;
+		}
+	}
 
 	// Get upload amount
-	r = fgets(buf, 9, f);
-	if (r != buf)
+	rr = fscanf(f, "%ld", &new_up);
+	if (rr <= 0)
 		goto exit;
-	new_up = atoi(buf);
 
 	close(f);
+
+	//////////
 
 	// Now read the previous values and modify by the offsets
 	f = fopen("/tmp/status.net", "r"); // Race condition?
 	if (!f)
 		goto exit;
 
-	// Offset download amount
-	r = fgets(buf, 9, f);
-	if (r != buf)
+	rr = fscanf(f, "%ld %ld", &old_down, &old_up);
+	if (!f)
 		goto exit;
-	ret.down = new_down - atoi(buf);
-
-	fgetc(f); // Wind over the space
-
-	// Offset upload amount
-	r = fgets(buf, 9, f);
-	if (r != buf)
-		goto exit;
-	ret.up = new_up - atoi(buf);
+	ret.down = new_down - old_down;
+	ret.up = new_up - old_up;
 
 	close(f);
-	
+
+	//////////
+	//
 	ret.success = true;
 exit:
 	close(f);
@@ -151,11 +161,11 @@ void to_si(char* buf, unsigned int n) {
 	}
 
 	if (unit >= LENGTH(SI_UNITS)) {
-		snprintf(buf, 6, "^^^^^");
+		snprintf(buf, 5, "^^^^^");
 		return;
 	}
 
-	snprintf(buf, 6, "%4d%c", n, SI_UNITS[unit]);
+	snprintf(buf, 5, "%03d%c", n, SI_UNITS[unit]);
 	buf[5] = '\0';
 }
 
@@ -168,8 +178,8 @@ int main(void) {
 	int bat_action = get_bat_action();
 
 	struct net_pair network = get_network_pair();
-	char up[6];
-	char down[6];
+	char up[5];
+	char down[5];
 	to_si(up, network.up);
 	to_si(down, network.down);
 
@@ -184,8 +194,10 @@ int main(void) {
 
 	if (bat_level == -1)
 		printf("BATERR");
+	else if (bat_level >= 100)
+		printf("FULL");
 	else 
-		printf("%d%% %c", bat_level, bat_action);
+		printf("%02d%% %c", bat_level, bat_action);
 
 	puts("");
 
