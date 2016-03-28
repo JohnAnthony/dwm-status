@@ -1,6 +1,9 @@
-CFLAGS="--std=c11"
+CFLAGS=--std=c11 -pedantic -Wall
 
 all: status
 
+clean:
+	rm status
+
 status: status.c
-	cc $< -o $@ -I/usr/src/linux/include ${CFLAGS}
+	cc $< -o $@ ${CFLAGS}

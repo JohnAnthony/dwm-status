@@ -1,6 +1,7 @@
-#include <stdio.h>
+#include <string.h>
 #include <stdbool.h>
-
+#include <stdio.h>
+#include <unistd.h>
 
 #define LENGTH(x) (sizeof(x) / sizeof(x[0]))
 
@@ -30,7 +31,7 @@ int get_bat_level() {
 		return -1;
 
 	fscanf(f, "%d", &ret);
-	close(f);
+	fclose(f);
 	return ret;
 }
 
@@ -54,7 +55,7 @@ char get_bat_action() {
 	else
 		ret = '?';
 
-	close(f);
+	fclose(f);
 	return ret;
 }
 #endif // BATTERY
@@ -65,7 +66,7 @@ void write_old_net_stats(long unsigned down, long unsigned up) {
 		return;
 
 	fprintf(f, "%8lu %8lu", down, up);
-	close(f);
+	fclose(f);
 }
 
 struct net_pair get_network_pair() {
@@ -129,7 +130,7 @@ struct net_pair get_network_pair() {
 	if (rr <= 0)
 		goto exit;
 
-	close(f);
+	fclose(f);
 
 	//////////
 
@@ -144,13 +145,11 @@ struct net_pair get_network_pair() {
 	ret.down = new_down - old_down;
 	ret.up = new_up - old_up;
 
-	close(f);
-
 	//////////
 	//
 	ret.success = true;
 exit:
-	close(f);
+	fclose(f);
 	write_old_net_stats(new_down, new_up);
 	return ret;
 }
