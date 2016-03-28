@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdbool.h>
 
+
 #define LENGTH(x) (sizeof(x) / sizeof(x[0]))
 
 #include "config.h"
@@ -14,8 +15,8 @@ static char SI_UNITS[] = {
 };
 
 struct net_pair {
-	int down;
-	int up;
+	long unsigned down;
+	long unsigned up;
 	bool success;
 };
 
@@ -58,12 +59,12 @@ char get_bat_action() {
 }
 #endif // BATTERY
 
-void write_old_net_stats(int down, int up) {
+void write_old_net_stats(long unsigned down, long unsigned up) {
 	FILE* f = fopen("/tmp/status.net", "w");
 	if (!f)
 		return;
 
-	fprintf(f, "%8d %8d", down, up);
+	fprintf(f, "%8lu %8lu", down, up);
 	close(f);
 }
 
@@ -72,11 +73,11 @@ struct net_pair get_network_pair() {
 	FILE* f;
 	char* r; // Used for detecting read errors
 	int rr; // User for ^
-	long unsigned int old_down;
-	long unsigned int old_up;
-	long unsigned int new_down;
-	long unsigned int new_up;
-	long unsigned int junk;
+	long unsigned old_down;
+	long unsigned old_up;
+	long unsigned new_down;
+	long unsigned new_up;
+	long unsigned junk;
 	char buf[9];
 	buf[8] = '\0';
 
@@ -154,7 +155,7 @@ exit:
 	return ret;
 }
 
-void to_si(char* buf, unsigned int n) {
+void to_si(char* buf, long unsigned n) {
 	size_t unit = 0;
 
 	while (n > 999) {
@@ -167,7 +168,7 @@ void to_si(char* buf, unsigned int n) {
 		return;
 	}
 
-	snprintf(buf, 5, "%03d%c", n, SI_UNITS[unit]);
+	snprintf(buf, 5, "%03lu%c", n, SI_UNITS[unit]);
 	buf[5] = '\0';
 }
 
