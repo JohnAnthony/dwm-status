@@ -2,7 +2,7 @@
 
 while true; do
 	SS="$(status)"
-	DATE="$(date +"%Y-%m-%d %T %A")"
+	DATE="$(date +"%Y-%m-%d %T %a")"
 
 	xsetroot -name "$(echo -e "$SS | $DATE")";
 	sleep 1;
