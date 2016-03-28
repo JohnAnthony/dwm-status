@@ -149,7 +149,8 @@ struct net_pair get_network_pair() {
 	//
 	ret.success = true;
 exit:
-	fclose(f);
+	if (f)
+		fclose(f);
 	write_old_net_stats(new_down, new_up);
 	return ret;
 }
