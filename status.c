@@ -140,7 +140,7 @@ struct net_pair get_network_pair() {
 		goto exit;
 
 	rr = fscanf(f, "%lu %lu", &old_down, &old_up);
-	if (!f)
+	if (rr == 0)
 		goto exit;
 	ret.down = new_down - old_down;
 	ret.up = new_up - old_up;
