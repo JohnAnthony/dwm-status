@@ -203,7 +203,7 @@ int main(void) {
 		printf("FULL");
 	else 
 		printf("%02d%% %c", bat_level, bat_action);
-#endif
+#endif // BATTERY
 
 	// All done
 
