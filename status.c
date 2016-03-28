@@ -1,6 +1,8 @@
 #include <string.h>
 #include <stdbool.h>
 #include <stdio.h>
+#include <stdlib.h>
+#include <time.h>
 #include <unistd.h>
 
 #define LENGTH(x) (sizeof(x) / sizeof(x[0]))
@@ -193,19 +195,34 @@ int main(void) {
 		printf("NETERR");
 	else
 		printf("U:%s D:%s", up, down);
+	print_separator();
 	
 #ifdef BATTERY
-	print_separator();
-
 	if (bat_level == -1)
 		printf("BATERR");
 	else if (bat_level >= 100)
 		printf("FULL");
 	else 
 		printf("%02d%% %c", bat_level, bat_action);
+	print_separator();
 #endif // BATTERY
 
-	// All done
+	char time_str[24];
+	time_t t = time(NULL);
+	if (t == (time_t) -1) {
+		puts("TIMEERR1");
+		return 1;
+	}
 
+	struct tm* local = localtime(&t); // No ownership (!)
+	if (local == NULL) {
+		puts("TIMERR2");
+		return 2;
+	}
+
+	strftime(time_str, 24, "%Y-%m-%d %T %a", local);
+	puts(time_str);
+
+	// All done
 	return 0;
 }
