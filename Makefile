@@ -1,4 +1,4 @@
-CFLAGS=--std=c11 -pedantic -Wall
+CFLAGS=--std=c11 -pedantic -Wall -O2
 
 all: status
 
