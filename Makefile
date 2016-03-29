@@ -5,5 +5,5 @@ all: status
 clean:
 	rm status
 
-status: status.c
+status: status.c config.h
 	cc $< -o $@ ${CFLAGS}
