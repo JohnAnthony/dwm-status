@@ -123,7 +123,7 @@ exit:
 	return ret;
 }
 
-void to_si(char* buf, long unsigned n) {
+void to_si(char* buf /*@out*/, long unsigned n) {
 	size_t unit = 0;
 
 	while (n > 999) {
@@ -185,8 +185,14 @@ int main(void) {
 	struct net_pair network = get_network_pair();
 	char up[5];
 	char down[5];
-	to_si(up, network.up);
-	to_si(down, network.down);
+	if (network.up < 1000)
+		snprintf(up, 5, "----");
+	else
+		to_si(up, network.up);
+	if (network.down < 1000)
+		snprintf(down, 5, "----");
+	else
+		to_si(down, network.down);
 
 	// Do all the printing
 	
