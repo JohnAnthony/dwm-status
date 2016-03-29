@@ -1,4 +1,5 @@
 CFLAGS=--std=c11 -pedantic -Wall -O2
+.PHONY: clean
 
 all: status
 
