@@ -157,7 +157,7 @@ int get_bat_level() {
 
 char get_bat_action() {
 	FILE* f;
-	char buf[8];
+	char buf[5];
 	char ret;
 
 	f = fopen("/sys/class/power_supply/BAT0/status", "r");
@@ -165,10 +165,10 @@ char get_bat_action() {
 		return 'X';
 
 	fread(&buf, sizeof(char), 7, f);
-	buf[7] = '\0';
-	if (!strcmp(buf, "Dischar"))
+	buf[4] = '\0';
+	if (!strcmp(buf, "Disc"))
 		ret = '-';
-	else if (!strcmp(buf, "Chargin"))
+	else if (!strcmp(buf, "Char"))
 		ret = '+';
 	else if (!strcmp(buf, "Full"))
 		ret = '^';
@@ -201,12 +201,13 @@ int main(void) {
 	int bat_level = get_bat_level();
 	int bat_action = get_bat_action();
 
+	if (bat_level >= 100)
+		bat_level = 0;
+
 	if (bat_level == -1)
 		printf("BATERR");
-	else if (bat_level >= 100)
-		printf("FULL");
 	else 
-		printf("%02d%% %c", bat_level, bat_action);
+		printf("B:%02d%c", bat_level, bat_action);
 	print_separator();
 #endif // BATTERY
 
