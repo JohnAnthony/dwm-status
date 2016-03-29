@@ -171,7 +171,7 @@ char get_bat_action() {
 	else if (!strcmp(buf, "Char"))
 		ret = '+';
 	else if (!strcmp(buf, "Full"))
-		ret = '^';
+		ret = '*';
 	else
 		ret = '?';
 
