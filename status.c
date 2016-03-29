@@ -3,7 +3,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
-#include <unistd.h>
 
 #define LENGTH(x) (sizeof(x) / sizeof(x[0]))
 
