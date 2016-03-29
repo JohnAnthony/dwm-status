@@ -9,6 +9,11 @@
 
 #include "config.h"
 
+void print_separator() {
+	printf(" | ");
+}
+
+#ifdef NETWORK
 static char SI_UNITS[] = {
 	' ',
 	'k',
@@ -22,45 +27,6 @@ struct net_pair {
 	long unsigned up;
 	bool success;
 };
-
-#ifdef BATTERY
-int get_bat_level() {
-	int ret;
-	FILE* f;
-
-	f = fopen("/sys/class/power_supply/BAT0/capacity", "r");
-	if (!f)
-		return -1;
-
-	fscanf(f, "%d", &ret);
-	fclose(f);
-	return ret;
-}
-
-char get_bat_action() {
-	FILE* f;
-	char buf[8];
-	char ret;
-
-	f = fopen("/sys/class/power_supply/BAT0/status", "r");
-	if (!f)
-		return 'X';
-
-	fread(&buf, sizeof(char), 7, f);
-	buf[7] = '\0';
-	if (!strcmp(buf, "Dischar"))
-		ret = '-';
-	else if (!strcmp(buf, "Chargin"))
-		ret = '+';
-	else if (!strcmp(buf, "Full"))
-		ret = '^';
-	else
-		ret = '?';
-
-	fclose(f);
-	return ret;
-}
-#endif // BATTERY
 
 void write_old_net_stats(long unsigned down, long unsigned up) {
 	FILE* f = fopen("/tmp/status.net", "w");
@@ -173,17 +139,49 @@ void to_si(char* buf, long unsigned n) {
 	snprintf(buf, 5, "%03lu%c", n, SI_UNITS[unit]);
 	buf[5] = '\0';
 }
+#endif // NETWORK
 
-void print_separator() {
-	printf(" | ");
+#ifdef BATTERY
+int get_bat_level() {
+	int ret;
+	FILE* f;
+
+	f = fopen("/sys/class/power_supply/BAT0/capacity", "r");
+	if (!f)
+		return -1;
+
+	fscanf(f, "%d", &ret);
+	fclose(f);
+	return ret;
 }
 
-int main(void) {
-#ifdef BATTERY
-	int bat_level = get_bat_level();
-	int bat_action = get_bat_action();
+char get_bat_action() {
+	FILE* f;
+	char buf[8];
+	char ret;
+
+	f = fopen("/sys/class/power_supply/BAT0/status", "r");
+	if (!f)
+		return 'X';
+
+	fread(&buf, sizeof(char), 7, f);
+	buf[7] = '\0';
+	if (!strcmp(buf, "Dischar"))
+		ret = '-';
+	else if (!strcmp(buf, "Chargin"))
+		ret = '+';
+	else if (!strcmp(buf, "Full"))
+		ret = '^';
+	else
+		ret = '?';
+
+	fclose(f);
+	return ret;
+}
 #endif // BATTERY
 
+int main(void) {
+#ifdef NETWORK
 	struct net_pair network = get_network_pair();
 	char up[5];
 	char down[5];
@@ -197,8 +195,12 @@ int main(void) {
 	else
 		printf("U:%s D:%s", up, down);
 	print_separator();
+#endif // NETWORK
 	
 #ifdef BATTERY
+	int bat_level = get_bat_level();
+	int bat_action = get_bat_action();
+
 	if (bat_level == -1)
 		printf("BATERR");
 	else if (bat_level >= 100)
