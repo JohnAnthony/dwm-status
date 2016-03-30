@@ -107,7 +107,7 @@ exit:
 	return ret;
 }
 
-void to_si(char* buf /*@out*/, long unsigned n) {
+void to_si(char* buf /*@out*/, size_t len, long unsigned n) {
 	size_t unit = 0;
 
 	while (n > 999) {
@@ -116,12 +116,12 @@ void to_si(char* buf /*@out*/, long unsigned n) {
 	}
 
 	if (unit >= LENGTH(SI_UNITS)) {
-		snprintf(buf, 5, "^^^^^");
+		snprintf(buf, len, "^^^^^");
 		return;
 	}
 
-	snprintf(buf, 5, "%03lu%c", n, SI_UNITS[unit]);
-	buf[5] = '\0';
+	snprintf(buf, len, "%03lu%c", n, SI_UNITS[unit]);
+	buf[LENGTH(buf) - 1] = '\0';
 }
 #endif // NETWORK
 
@@ -148,8 +148,8 @@ char get_bat_action() {
 	if (!f)
 		return 'X';
 
-	fread(&buf, sizeof(char), 7, f);
-	buf[4] = '\0';
+	fread(&buf, sizeof(char), LENGTH(buf), f);
+	buf[LENGTH(buf) - 1] = '\0';
 	if (!strcmp(buf, "Disc"))
 		ret = '-';
 	else if (!strcmp(buf, "Char"))
@@ -172,11 +172,11 @@ int main(void) {
 	if (network.up < 1000)
 		snprintf(up, 5, "----");
 	else
-		to_si(up, network.up);
+		to_si(up, LENGTH(up), network.up);
 	if (network.down < 1000)
 		snprintf(down, 5, "----");
 	else
-		to_si(down, network.down);
+		to_si(down, LENGTH(down), network.down);
 
 	// Do all the printing
 	
@@ -214,7 +214,7 @@ int main(void) {
 		return 2;
 	}
 
-	strftime(time_str, 24, "%Y-%m-%d %T %a", local);
+	strftime(time_str, LENGTH(time_str), "%Y-%m-%d %T %a", local);
 	puts(time_str);
 
 	// All done
