@@ -45,7 +45,6 @@ struct net_pair get_network_pair() {
 	long unsigned old_up;
 	long unsigned new_down;
 	long unsigned new_up;
-	long unsigned junk;
 	char buf[9];
 	buf[8] = '\0';
 
@@ -79,21 +78,7 @@ struct net_pair get_network_pair() {
 	fgetc(f);
 
 	// Get download amount
-	rr = fscanf(f, "%lu", &new_down);
-	if (rr <= 0)
-		goto exit;
-
-	// Seek forwards to upload amount
-	for (int i = 0; i < 7; i++) {
-		rr = fscanf(f, "%lu", &junk);
-		if (rr <= 0) {
-			puts("derp");
-			goto exit;
-		}
-	}
-
-	// Get upload amount
-	rr = fscanf(f, "%lu", &new_up);
+	rr = fscanf(f, "%lu %*d %*d %*d %*d %*d %*d %*d %lu", &new_down, &new_up);
 	if (rr <= 0)
 		goto exit;
 
@@ -113,7 +98,7 @@ struct net_pair get_network_pair() {
 	ret.up = new_up - old_up;
 
 	//////////
-	//
+
 	ret.success = true;
 exit:
 	if (f)
