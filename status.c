@@ -109,19 +109,33 @@ exit:
 
 void to_si(char* buf /*@out*/, size_t len, long unsigned n) {
 	size_t unit = 0;
+	double d = n; // HURR HURR
 
-	while (n > 999) {
-		unit++;
-		n /= 1024;
+	// We're not even in kB. Just return nothing.
+	if (d < 1000) {
+		snprintf(buf, len, "----");
+		return;
 	}
 
+	while (d > 999) {
+		unit++;
+		d /= 1024;
+	}
+
+	// We're way off the scale
 	if (unit >= LENGTH(SI_UNITS)) {
 		snprintf(buf, len, "^^^^^");
 		return;
 	}
 
-	snprintf(buf, len, "%03lu%c", n, SI_UNITS[unit]);
-	buf[LENGTH(buf) - 1] = '\0';
+	// With decimal
+	if (d < 10) {
+		snprintf(buf, len, "%.1f%c", d, SI_UNITS[unit]);
+		return;
+	}
+
+	// Without decimal
+	snprintf(buf, len, "%03.0f%c", d, SI_UNITS[unit]);
 }
 #endif // NETWORK
 
@@ -169,17 +183,9 @@ int main(void) {
 	struct net_pair network = get_network_pair();
 	char up[5];
 	char down[5];
-	if (network.up < 1000)
-		snprintf(up, 5, "----");
-	else
-		to_si(up, LENGTH(up), network.up);
-	if (network.down < 1000)
-		snprintf(down, 5, "----");
-	else
-		to_si(down, LENGTH(down), network.down);
+	to_si(up, LENGTH(up), network.up);
+	to_si(down, LENGTH(down), network.down);
 
-	// Do all the printing
-	
 	if (!network.success)
 		printf("NETERR");
 	else
