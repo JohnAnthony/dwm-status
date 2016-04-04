@@ -186,7 +186,7 @@ void main_loop() {
 		display_name = "";
 	int screen_nbr;
 	xcb_connection_t* dpy = xcb_connect(display_name, &screen_nbr);
-	if (!dpy)
+	if (xcb_connection_has_error(dpy))
 		return;
 	
 #ifdef NETWORK
@@ -234,6 +234,8 @@ void main_loop() {
 	strncat(buffer, time_str, LENGTH(buffer) - len);
 	len = MIN(len + strlen(time_str), LENGTH(buffer));
 
+	if (xcb_connection_has_error(dpy))
+		return;
 	xcb_screen_t* screen = xcb_setup_roots_iterator(xcb_get_setup(dpy)).data;
 	xcb_window_t root = screen->root;
 	xcb_change_property(dpy, XCB_PROP_MODE_REPLACE, root, XCB_ATOM_WM_NAME,

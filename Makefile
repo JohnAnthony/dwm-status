@@ -1,4 +1,4 @@
-CFLAGS=--std=c11 -pedantic -Wall -ggdb
+CFLAGS=--std=c11 -pedantic -Wall
 LIBS=-lxcb
 .PHONY: clean
 
