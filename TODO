@@ -8,3 +8,9 @@ Battery time remaining estimation:
 	as charge_delta / time_delta * charge_remaining
 
 Change to setting xroot ourselves to eliminate all of this state in /tmp?
+
+Use better string handling
+
+Clean up on sigterm
+
+Lock to one instance per display
