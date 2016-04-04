@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
+#include <unistd.h>
 #include <xcb/xcb.h>
 #include <xcb/xcb_aux.h>
 
@@ -242,7 +243,7 @@ void main_loop() {
 int main(void) {
 	while (true) {
 		main_loop();
-		sleep(1000);
+		sleep(1);
 	}
 
 	return 0;
