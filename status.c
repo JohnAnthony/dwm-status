@@ -3,8 +3,12 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
+#include <unistd.h>
+#include <xcb/xcb.h>
+#include <xcb/xcb_aux.h>
 
 #define LENGTH(x) (sizeof(x) / sizeof(x[0]))
+#define MIN(a, b) ((a) < (b) ? (a) : (b))
 
 #include "config.h"
 
@@ -173,7 +177,18 @@ char get_bat_action() {
 }
 #endif // BATTERY
 
-int main(void) {
+void main_loop() {
+	char buffer[256];
+	size_t len = 0;
+	buffer[0] = '\0';
+	const char* display_name = getenv("DISPLAY");
+	if (!display_name)
+		display_name = "";
+	int screen_nbr;
+	xcb_connection_t* dpy = xcb_connect(display_name, &screen_nbr);
+	if (xcb_connection_has_error(dpy))
+		return;
+	
 #ifdef NETWORK
 	struct net_pair network = get_network_pair();
 	char up[5];
@@ -182,10 +197,10 @@ int main(void) {
 	to_si(down, LENGTH(down), network.down);
 
 	if (!network.success)
-		printf("NETERR");
+		len += snprintf(&buffer[len], LENGTH(buffer) - len, "NETERR");
 	else
-		printf("U:%s D:%s", up, down);
-	print_separator();
+		len += snprintf(&buffer[len], LENGTH(buffer) - len, "U:%s D:%s", up, down);
+	len += snprintf(&buffer[len], LENGTH(buffer) - len, " | ");
 #endif // NETWORK
 	
 #ifdef BATTERY
@@ -196,28 +211,43 @@ int main(void) {
 		bat_level = 0;
 
 	if (bat_level == -1)
-		printf("BATERR");
+		len += snprintf(&buffer[len], LENGTH(buffer) - len, "BATERR");
 	else 
-		printf("B:%02d%c", bat_level, bat_action);
-	print_separator();
+		len += snprintf(&buffer[len], LENGTH(buffer) - len, "B:%02d%c", bat_level, bat_action);
+	len += snprintf(&buffer[len], LENGTH(buffer) - len, " | ");
 #endif // BATTERY
 
 	char time_str[24];
 	time_t t = time(NULL);
 	if (t == (time_t) -1) {
-		puts("TIMEERR1");
-		return 1;
+		puts("TIMERR1");
+		return;
 	}
 
 	struct tm* local = localtime(&t); // No ownership (!)
 	if (local == NULL) {
 		puts("TIMERR2");
-		return 2;
+		return;
 	}
 
 	strftime(time_str, LENGTH(time_str), "%Y-%m-%d %T %a", local);
-	puts(time_str);
+	strncat(buffer, time_str, LENGTH(buffer) - len);
+	len = MIN(len + strlen(time_str), LENGTH(buffer));
 
-	// All done
+	if (xcb_connection_has_error(dpy))
+		return;
+	xcb_screen_t* screen = xcb_setup_roots_iterator(xcb_get_setup(dpy)).data;
+	xcb_window_t root = screen->root;
+	xcb_change_property(dpy, XCB_PROP_MODE_REPLACE, root, XCB_ATOM_WM_NAME,
+		XCB_ATOM_STRING, 8, len + 1, buffer);
+	xcb_flush(dpy);
+}
+
+int main(void) {
+	while (true) {
+		main_loop();
+		sleep(1);
+	}
+
 	return 0;
 }
