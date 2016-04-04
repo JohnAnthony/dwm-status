@@ -221,13 +221,13 @@ void main_loop() {
 	time_t t = time(NULL);
 	if (t == (time_t) -1) {
 		puts("TIMERR1");
-		return;
+		goto cleanup;
 	}
 
 	struct tm* local = localtime(&t); // No ownership (!)
 	if (local == NULL) {
 		puts("TIMERR2");
-		return;
+		goto cleanup;
 	}
 
 	strftime(time_str, LENGTH(time_str), "%Y-%m-%d %T %a", local);
@@ -240,7 +240,10 @@ void main_loop() {
 	xcb_window_t root = screen->root;
 	xcb_change_property(dpy, XCB_PROP_MODE_REPLACE, root, XCB_ATOM_WM_NAME,
 		XCB_ATOM_STRING, 8, len + 1, buffer);
+
+cleanup:
 	xcb_flush(dpy);
+	xcb_disconnect(dpy);
 }
 
 int main(void) {
