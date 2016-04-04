@@ -176,7 +176,7 @@ char get_bat_action() {
 }
 #endif // BATTERY
 
-int main(void) {
+void main_loop() {
 	char buffer[256];
 	size_t len = 0;
 	buffer[0] = '\0';
@@ -213,13 +213,13 @@ int main(void) {
 	time_t t = time(NULL);
 	if (t == (time_t) -1) {
 		puts("TIMERR1");
-		return 1;
+		return;
 	}
 
 	struct tm* local = localtime(&t); // No ownership (!)
 	if (local == NULL) {
 		puts("TIMERR2");
-		return 2;
+		return;
 	}
 
 	strftime(time_str, LENGTH(time_str), "%Y-%m-%d %T %a", local);
@@ -237,7 +237,13 @@ int main(void) {
 	xcb_change_property(dpy, XCB_PROP_MODE_REPLACE, root, XCB_ATOM_WM_NAME,
 		XCB_ATOM_STRING, 8, len + 1, buffer);
 	xcb_flush(dpy);
+}
 
-	// All done
+int main(void) {
+	while (true) {
+		main_loop();
+		sleep(1000);
+	}
+
 	return 0;
 }
