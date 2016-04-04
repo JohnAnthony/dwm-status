@@ -1,0 +1,10 @@
+Battery time remaining estimation:
+	If /tmp/status.bat doesn't exist && battery is discharging
+		write to it with "%d %d", date, battery_charge
+	Else if /tmp/status exists && battery !discharging
+		delete it
+
+	If battery is discharging, read /tmp/status.bat and work out time remaining
+	as charge_delta / time_delta * charge_remaining
+
+Change to setting xroot ourselves to eliminate all of this state in /tmp?
