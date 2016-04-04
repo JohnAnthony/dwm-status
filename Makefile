@@ -1,5 +1,5 @@
-CFLAGS=--std=c11 -pedantic -Wall -O2
-LIBS=-lxcb -lxcb-util
+CFLAGS=--std=c11 -pedantic -Wall
+LIBS=-lxcb
 .PHONY: clean
 
 all: status
