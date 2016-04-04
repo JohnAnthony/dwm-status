@@ -13,13 +13,7 @@ void print_separator() {
 }
 
 #ifdef NETWORK
-static char SI_UNITS[] = {
-	' ',
-	'k',
-	'M',
-	'G',
-	'T'
-};
+static char SI_UNITS[] = { 'k',	'M', 'G', 'T' };
 
 struct net_pair {
 	long unsigned down;
@@ -117,6 +111,7 @@ void to_si(char* buf /*@out*/, size_t len, long unsigned n) {
 		return;
 	}
 
+	d /= 1024;
 	while (d > 999) {
 		unit++;
 		d /= 1024;
