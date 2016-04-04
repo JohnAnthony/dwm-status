@@ -181,7 +181,14 @@ void main_loop() {
 	char buffer[256];
 	size_t len = 0;
 	buffer[0] = '\0';
-
+	const char* display_name = getenv("DISPLAY");
+	if (!display_name)
+		display_name = "";
+	int screen_nbr;
+	xcb_connection_t* dpy = xcb_connect(display_name, &screen_nbr);
+	if (!dpy)
+		return;
+	
 #ifdef NETWORK
 	struct net_pair network = get_network_pair();
 	char up[5];
@@ -227,13 +234,7 @@ void main_loop() {
 	strncat(buffer, time_str, LENGTH(buffer) - len);
 	len = MIN(len + strlen(time_str), LENGTH(buffer));
 
-	// XCB stuff
-	const char* display_name = getenv("DISPLAY");
-	if (!display_name)
-		display_name = "";
-	int screen_nbr;
-	xcb_connection_t* dpy = xcb_connect(display_name, &screen_nbr);
-	xcb_screen_t* screen = xcb_aux_get_screen(dpy, screen_nbr);
+	xcb_screen_t* screen = xcb_setup_roots_iterator(xcb_get_setup(dpy)).data;
 	xcb_window_t root = screen->root;
 	xcb_change_property(dpy, XCB_PROP_MODE_REPLACE, root, XCB_ATOM_WM_NAME,
 		XCB_ATOM_STRING, 8, len + 1, buffer);
