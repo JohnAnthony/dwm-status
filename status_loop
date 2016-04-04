@@ -1,6 +1,6 @@
 #!/bin/bash
 
 while true; do
-	xsetroot -name "$(status)";
+	status;
 	sleep 1;
 done
