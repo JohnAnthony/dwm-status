@@ -4,8 +4,6 @@
 #include <stdlib.h>
 #include <time.h>
 #include <unistd.h>
-#include <xcb/xcb.h>
-#include <xcb/xcb_aux.h>
 
 #define LENGTH(x) (sizeof(x) / sizeof(x[0]))
 #define MIN(a, b) ((a) < (b) ? (a) : (b))
@@ -184,10 +182,6 @@ void main_loop() {
 	const char* display_name = getenv("DISPLAY");
 	if (!display_name)
 		display_name = "";
-	int screen_nbr;
-	xcb_connection_t* dpy = xcb_connect(display_name, &screen_nbr);
-	if (xcb_connection_has_error(dpy))
-		return;
 	
 #ifdef NETWORK
 	struct net_pair network = get_network_pair();
@@ -221,36 +215,23 @@ void main_loop() {
 	time_t t = time(NULL);
 	if (t == (time_t) -1) {
 		puts("TIMERR1");
-		goto cleanup;
+		return;
 	}
 
 	struct tm* local = localtime(&t); // No ownership (!)
 	if (local == NULL) {
 		puts("TIMERR2");
-		goto cleanup;
+		return;
 	}
 
 	strftime(time_str, LENGTH(time_str), "%Y-%m-%d %T %a", local);
 	strncat(buffer, time_str, LENGTH(buffer) - len);
 	len = MIN(len + strlen(time_str), LENGTH(buffer));
 
-	if (xcb_connection_has_error(dpy))
-		return;
-	xcb_screen_t* screen = xcb_setup_roots_iterator(xcb_get_setup(dpy)).data;
-	xcb_window_t root = screen->root;
-	xcb_change_property(dpy, XCB_PROP_MODE_REPLACE, root, XCB_ATOM_WM_NAME,
-		XCB_ATOM_STRING, 8, len + 1, buffer);
-
-cleanup:
-	xcb_flush(dpy);
-	xcb_disconnect(dpy);
+	puts(buffer);
 }
 
 int main(void) {
-	while (true) {
-		main_loop();
-		sleep(1);
-	}
-
+	main_loop();
 	return 0;
 }
